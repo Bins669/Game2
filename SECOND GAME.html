@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>4 Pics 1 Word - ICT Edition</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; background: #1e1e1e; color: white; padding: 20px; }
+        .game-container { background: #333; padding: 20px; border-radius: 10px; width: 90%; max-width: 350px; margin: auto; }
+        .hint { background: yellow; color: black; padding: 10px; border-radius: 5px; margin-bottom: 10px; }
+        .images { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 15px; }
+        .images img { width: 100%; height: 100px; object-fit: cover; border-radius: 8px; }
+        .word-box { display: flex; justify-content: center; gap: 5px; margin: 15px 0; }
+        .letter-box { width: 40px; height: 40px; background: white; color: black; border-radius: 5px; text-align: center; font-size: 24px; font-weight: bold; display: inline-flex; align-items: center; justify-content: center; }
+        .letters { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-bottom: 10px; }
+        .letter { font-size: 18px; width: 40px; height: 40px; background: yellow; color: black; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; }
+        .buttons button { font-size: 16px; padding: 10px; width: 100px; margin: 5px; border: none; border-radius: 5px; cursor: pointer; }
+        .submit { background: green; color: white; }
+        .next-level { background: blue; color: white; display: none; }
+        .reset { background: red; color: white; }
+        .message { font-size: 18px; font-weight: bold; margin: 10px 0; padding: 5px; display: none; border-radius: 5px; }
+        .correct { background: green; color: white; display: block; }
+        .wrong { background: red; color: white; display: block; }
+    </style>
+</head>
+<body>
+
+    <div class="game-container">
+        <h2>4 Pics 1 Word - ICT Edition</h2>
+        <h3 id="level">Level 1</h3>
+        <div class="hint" id="hint">🔎 Hint: A device used for communication.</div>
+        <div class="images">
+            <img id="img1" src="phone1.jpg" alt="Image 1">
+            <img id="img2" src="phone2.jpg" alt="Image 2">
+            <img id="img3" src="phone3.jpg" alt="Image 3">
+            <img id="img4" src="phone4.jpg" alt="Image 4">
+        </div>
+        <div class="word-box" id="word-box"></div>
+        <div class="letters" id="letters"></div>
+        <div class="message" id="message"></div>
+        <div class="buttons">
+            <button class="submit" onclick="checkAnswer()">Submit</button>
+            <button class="next-level" onclick="nextLevel()">Next Level</button>
+            <button class="reset" onclick="resetGame()">Reset</button>
+        </div>
+    </div>
+
+    <script>
+        const levels = [
+            { word: "PHONE", hint: "A device used for communication", images: ["https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR-jRyMGIIYg7Ehr9OWPFUhLDH3A9uWQMewuve9oibG7cuXlEjuX2-tA_ox&s=10", "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS_Yj0m7ynaeSrbwX949AZVLuFawlH9IBUGfnTMG7UdQ914-jMsfzMudK8&s=10", "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRYNLef6VXTiCZ_eDpfxOC0Oqta6iCPiS9s0-ChOFaB3LAZ4GlwjWFWC1mN&s=10", "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRxRA_oz0t1zYl9fSRX6sYi5jzKhilkLIIY6Yx0hBm2R5CC__7OWQI_tUU&s=10"] },
+            { word: "EMAIL", hint: "A way to send digital messages", images: ["https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTbL3A80OxrFk6sQ1D7nJdASt1Ud1L7XTRnTu3Gq1jefDlrttFHcuNovGqR&s=10", "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRZ7Fzw0T8xvg6NT732w9T4Rqh2QjkwQ_Gv-eXq69P2s0rDp8BHPKVZgGzy&s=10", "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR6qupFpf-fpMNQqebbHIz0HqNTwWPC0MzT2Pa7lsgY_LsFb7_kDosNgXf1&s=10", "https://obrienmedia.co.uk/wp-content/uploads/2017/09/images_articles_automated-email-marketing-hints-tips.jpg"] },
+            { word: "BUG", hint: "A tiny problem in a program.", images: ["https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTOCGUqu1X-kGV_b04oV703qXZG0LklSJh6pT_paCyDM0ctfmwxbn2Oxevy&s=10", "https://cdn-icons-png.freepik.com/512/2572/2572560.png", "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ-TREIMUNULHITDXtGQ_HkNF8fBGuZIkAVGm6af416jBnoH_zckH2pcS2B&s=10", "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQbg6II6fMjBudKSeYyquvrOShWaVVz84ywMPIgWuPRkjsgN2uF1xTIDdQ&s=10"] },
+            { word: "CODING", hint: "Computer language.", images: ["https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQWjGDVpg1rJCQyQznLp_GsSGDQrWLFaiicVbXws0hHQjWiBLkM6PpJdFw&s=10", "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRcl9jR1sqmF5IM7tyDXJW8xGMm6M9rZKGnO2X6iCFN24Tw7vYsOXnsA2ja&s=10", "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQqhAcC7hJV_ZF23IoXbZn9MJnoEw-TeZjbTMn7O9CdLCp4aCMt4fzvHA0&s=10", "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSW4Wl6WZnDE6M7xml2BjnpZlO9XU3a5o8AOUklGqMxDfMQmc694Aw1xHbD&s=10"] },
+            { word: "ALGORITHM", hint: "Step-by-step instructions.", images: ["https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQt12ea9R-aEQMOsI_ayV36wSdmmoOkaupzLfEsNUKmbmVwN9IByw09RK4&s=10", "https://images.klipfolio.com/website/public/11f3da89-351a-4ca1-a59d-b6806b0fcec1/algorithm.jpg", "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcToKeNKVyAKvS2vmR9p-Lvww9ut5R4X_H4yiQ&s", "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRBQkY7kemw19GRhaYEqOwcXO6Y2IGc61g3V_o9JOMrDSnR03IPsX3OTX2N&s=10"] },
+            { word: "HTML", hint: "Uses tags to structure content on a webpage.", images: ["https://web.dev/static/html/image/hero-html.png", "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSB21wrT5bXaMjQRXLdtxFvR2XXIfZ7G0YF-OIYXA9mBJfgwc7Q1iveq-4&s=10", "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRvkFgyJTVz99opvf-md5PM9yguCY64Zp72j1ZnbRRO9eUSfMKhpgfj5JU&s=10", "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR2MVb_opsKgO3kU4edmvTq34g-8X625cZfxrixO1LsRTV6-HzrMbodJ-o&s=10"] },
+            { word: "PYTHON", hint: "Consider indentation and its significance.", images: ["https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQJ1807jDhQ917nlABNLZuMNWkB5oLlPbSZ2bqUQ5O4uEaipqtHRbywv3-5&s=10", "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTU3w2JBr1f2VyU9ezN9oX7LZ4O7pQUSsCOEXCSTfaFMnB46Qrb_4XX_5o&s=10", "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRWUs_whMPMVpMaxH_Uz98-Vv9h9M7ehKpO4iqLzyOJO3UUX2tobCQMFw&s=10", "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTgmvYuaXZCHDCoMLAbJyNHVEjIDIPuc9jMCflfS4rSo87QAlw8DV1o4LI&s=10"] }
+        ];
+
+        let currentLevel = 0;
+        let userAnswer = [];
+
+        function loadLevel() {
+            const level = levels[currentLevel];
+            document.getElementById("level").textContent = "Level " + (currentLevel + 1);
+            document.getElementById("hint").textContent = "🔎 Hint: " + level.hint;
+
+            for (let i = 0; i < 4; i++) {
+                document.getElementById("img" + (i + 1)).src = level.images[i];
+            }
+
+            document.getElementById("word-box").innerHTML = "";
+            userAnswer = [];
+            for (let i = 0; i < level.word.length; i++) {
+                document.getElementById("word-box").innerHTML += `<div class="letter-box" id="box${i}"></div>`;
+            }
+
+            const lettersDiv = document.getElementById("letters");
+            lettersDiv.innerHTML = "";
+            let letters = level.word.split("");
+            let extraLetters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("").sort(() => Math.random() - 0.5).slice(0, 6);
+            let allLetters = letters.concat(extraLetters).sort(() => Math.random() - 0.5);
+
+            allLetters.forEach(letter => {
+                lettersDiv.innerHTML += `<button class="letter" onclick="addLetter('${letter}')">${letter}</button>`;
+            });
+
+            document.getElementById("message").style.display = "none";
+            document.querySelector(".next-level").style.display = "none";
+        }
+
+        function addLetter(letter) {
+            let boxes = document.querySelectorAll(".letter-box");
+            for (let i = 0; i < boxes.length; i++) {
+                if (!boxes[i].textContent) {
+                    boxes[i].textContent = letter;
+                    userAnswer.push(letter);
+                    break;
+                }
+            }
+        }
+
+        function checkAnswer() {
+            let message = document.getElementById("message");
+            let answerString = userAnswer.join("");
+
+            if (answerString === levels[currentLevel].word) {
+                message.textContent = "Correct! 🎉";
+                message.className = "message correct";
+                document.querySelector(".next-level").style.display = "inline-block";
+            } else {
+                message.textContent = "Wrong! Try again ❌";
+                message.className = "message wrong";
+            }
+            message.style.display = "block";
+        }
+
+        function nextLevel() {
+            if (currentLevel < levels.length - 1) {
+                currentLevel++;
+                loadLevel();
+            } else {
+                alert("🎉 You've completed all levels! 🎉");
+            }
+        }
+
+        function resetGame() {
+            document.querySelectorAll(".letter-box").forEach(box => (box.textContent = ""));
+            userAnswer = [];
+            document.getElementById("message").style.display = "none";
+        }
+
+        loadLevel();
+    </script>
+
+</body>
+</html>
